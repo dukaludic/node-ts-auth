@@ -1,7 +1,7 @@
 import { User } from "../models";
 import mysql, { Pool } from 'mysql2';
 import jwt from 'jsonwebtoken';
-import { hashPassword } from "../helpers";
+import { generateAccessToken, generateRefreshToken, hashPassword } from "../helpers";
 import tokenCache, { TokenCache } from "../helpers/tokenCache";
 
 export class UsersController {
@@ -35,9 +35,6 @@ export class UsersController {
     async insertUser(user: User): Promise<any> {
         const { firstName, lastName, email, password } = user;
 
-        const accessToken = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: '15s' });
-        const refreshToken = jwt.sign({ email }, process.env.REFRESH_TOKEN_SECRET!);
-
         const hashedPassword = await hashPassword(password);
 
         const insertUserRes = await this.db.query(`
@@ -55,8 +52,9 @@ export class UsersController {
 
         const { id } = lastInsertedRes[0][0];
 
-        console.log('id sto', id)
-        // cache refresh token
+        const accessToken = generateAccessToken({ id, email });
+        const refreshToken = generateRefreshToken({ id, email });
+
         this.tokenCache.set(id, refreshToken);
 
         return accessToken;

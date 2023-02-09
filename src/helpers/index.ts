@@ -1,2 +1,2 @@
 export * from './password';
-export * from './accessToken';
+export * from './tokenGenerate';

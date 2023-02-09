@@ -12,7 +12,7 @@ const router = Router();
 router.get('/users/:id', validation, async (req: Request, res: Response) => {
     const repo = new UsersController();
     const response = await repo.getUserById(req.params.id);
-    // res.send(response);
+    res.send(response);
 });
 
 router.post('/register', async (req: Request, res: Response) => {
@@ -20,10 +20,6 @@ router.post('/register', async (req: Request, res: Response) => {
     const accessToken = await repo.insertUser(req.body);
 
     res.send({ accessToken })
-})
-
-const generateAccessToken = (user: any) => {
-    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: '15s' })
-}
+});
 
 export default router;
