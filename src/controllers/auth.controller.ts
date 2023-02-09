@@ -1,9 +1,13 @@
 import { User } from "../models";
 import mysql, { Pool } from 'mysql2';
 import jwt from 'jsonwebtoken';
+import tokenCache, { TokenCache } from "../helpers/tokenCache";
+import { verifyPassword } from "../helpers";
 
-export class AuthController {
+
+class AuthController {
     private db: any;
+    private tokenCache: TokenCache;
 
     constructor() {
         this.db = mysql.createPool({
@@ -12,52 +16,47 @@ export class AuthController {
             password: process.env.DB_PASSWORD,
             database: process.env.DB
         }).promise();
+
+        this.tokenCache = tokenCache;
     }
 
     async login(user: any): Promise<any> {
         const { email, password } = user;
 
-        console.log(email)
+        console.log(email);
 
-        const getUserRes = this.db.query(`
+        const getUserRes = await this.db.query(`
             SELECT id, password
             FROM users
             WHERE email = ?
         `, [email]);
 
-        console.log(getUserRes.rows);
+        console.log(getUserRes[0]);
 
-        return
+        const { id, password: dbPassword } = getUserRes[0][0];
+
+        console.log(id, '============');
         //check pw
+        verifyPassword(password, dbPassword);
 
+        const accessToken = jwt.sign({ email, id }, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: '15s' });
+        const refreshToken = jwt.sign({ email, id }, process.env.REFRESH_TOKEN_SECRET!);
 
+        // //cache refresh token
+        this.tokenCache.set(id, refreshToken);
 
-        // const accessToken = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET!, { expiresIn: '15s' });
-        // const refreshToken = jwt.sign({ email }, process.env.ACCESS_TOKEN_SECRET!);
-
-
-
-        // //save refresh token
-
-        // const updateRes = this.db.query(`
-        //     UPDATE users
-        //     SET refresh_token = ?
-        //     WHERE id = ?
-        // `, [refreshToken, id])
-
-        // return {
-        //     accessToken
-        // };
+        return {
+            accessToken
+        };
     };
 
-    async logout(email: string): Promise<void> {
+    async logout(accessToken: string): Promise<number> {
+        const { id } = jwt.decode(accessToken!) as any;
 
-        const res = this.db.query(`
-            UPDATE users
-            SET refresh_token = NULL
-            WHERE email = ?
-        `, [email])
+        this.tokenCache.clear(id);
 
-        return res;
+        return 200;
     }
 }
+
+export default new AuthController()

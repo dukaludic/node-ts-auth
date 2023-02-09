@@ -1,7 +1,14 @@
 import NodeCache from 'node-cache';
 
-class TokenCache {
-    private readonly nodeCache = new NodeCache();
+export interface TokenCache {
+    readonly nodeCache: NodeCache;
+    tryGet(id: number): string | undefined;
+    set(id: number, refreshToken: string): void;
+    clear(id: number): void;
+}
+
+class Cache implements Cache {
+    readonly nodeCache = new NodeCache();
 
     tryGet(id: number): string | undefined {
         return this.nodeCache.get(id);
@@ -16,4 +23,4 @@ class TokenCache {
     }
 }
 
-export default new TokenCache();
+export default new Cache();

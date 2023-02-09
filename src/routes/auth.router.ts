@@ -1,7 +1,5 @@
-import express, { Request, Response, Router } from 'express';
-import { UsersController } from '../controllers/users.controller';
-import { AuthController } from '../controllers/auth.controller';
-import { validation } from '../middlewares';
+import { Request, Response, Router } from 'express';
+import AuthController from '../controllers/auth.controller';
 import jwt from 'jsonwebtoken';
 
 import dotenv from 'dotenv';
@@ -13,11 +11,8 @@ dotenv.config();
 const router = Router();
 
 router.post('/login', async (req: Request, res: Response) => {
-    const repo = new AuthController();
-
-    console.log('login start')
-    const accessToken = await repo.login(req.body);
-    return accessToken
+    const accessToken = await AuthController.login(req.body);
+    res.send(accessToken);
 });
 
 interface VerifyRes {
@@ -29,19 +24,9 @@ interface VerifyRes {
 router.get('/logout', async (req: Request, res: Response) => {
     const token = req.headers.authorization?.split(' ')[1];
 
-    let email: string;
+    const response = await AuthController.logout(token!);
 
-    jwt.verify(token!, process.env.ACCESS_TOKEN_SECRET!, (err: any, decoded: any) => {
-        if (err) res.sendStatus(403);
-
-        email = decoded.email
-    })
-
-    const repo = new AuthController();
-
-    const response = await repo.logout(email!);
-
-    console.log(response);
+    res.sendStatus(response);
 });
 
 router.get('/refresh', async (req: Request, res: Response) => {

@@ -1,8 +1,5 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import dotenv from "dotenv";
-
-import mysql from "mysql2";
-import { validation } from './middlewares';
 import UserRouter from './routes/user.router';
 import AuthRouter from './routes/auth.router';
 // import swaggerDocs from './utils/swagger';
