@@ -11,16 +11,16 @@ class AuthController {
 
     constructor() {
         this.db = mysql.createPool({
-            host: process.env.HOST,
+            host: process.env.DB_HOST,
             user: process.env.DB_USER,
             password: process.env.DB_PASSWORD,
-            database: process.env.DB
+            database: process.env.DB_NAME
         }).promise();
 
         this.tokenCache = tokenCache;
     }
 
-    async login(user: User): Promise<{ accessToken: string }> {
+    async login(user: User): Promise<{ accessToken: string, refreshToken: string }> {
         const { email, password } = user;
 
         console.log(email);
@@ -46,7 +46,7 @@ class AuthController {
         // //cache refresh token
         this.tokenCache.set(id, refreshToken);
 
-        return { accessToken };
+        return { accessToken, refreshToken };
     };
 
     async logout(accessToken: string): Promise<number> {
@@ -57,19 +57,8 @@ class AuthController {
         return 200;
     }
 
-    async refreshToken(accessToken: string): Promise<{ accessToken: string } | number> {
-        const { id, email } = jwt.decode(accessToken) as any;
-
-
-        console.log(id, accessToken, email, '==========bp1');
-
-        //try get from cache
-        const refreshToken = tokenCache.tryGet(id);
-
-        console.log(refreshToken, '===refresh token')
-
-
-        let token: string;
+    async refreshToken(refreshToken: string): Promise<{ accessToken: string } | number> {
+        const { id, email } = jwt.decode(refreshToken) as any;
 
         if (!refreshToken) return 403;
 
@@ -88,6 +77,18 @@ class AuthController {
 
             console.log(token, '===bp2');
         })
+
+        //try get from cache
+        const newRefreshToken = tokenCache.tryGet(id);
+
+        console.log(refreshToken, '===refresh token')
+
+
+        let token: string;
+
+
+
+
 
         return { accessToken: token! };
     }

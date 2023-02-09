@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-const ACCESS_TOKEN_TTL = 60;
+const ACCESS_TOKEN_TTL = 30;
 const REFRESH_TOKEN_TTL = 3600;
 
 export function generateAccessToken(payload: { id: number, email: string }): string {
@@ -9,5 +9,5 @@ export function generateAccessToken(payload: { id: number, email: string }): str
 }
 
 export function generateRefreshToken(payload: { id: number, email: string }): string {
-    return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET!);
+    return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: REFRESH_TOKEN_TTL });
 }

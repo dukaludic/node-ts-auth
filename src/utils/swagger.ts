@@ -1,45 +1,41 @@
-// import swaggerJsdoc from 'swagger-jsdoc';
-// import swaggerUi from 'swagger-ui-express';
-// import { version } from '../../package.json';
-// import { Express } from 'express';
+// TS ignore shouln't be used normally, but Swagger types were creating issues
+// with Typescript build in my case and would require some time to fix
 
-// const options: swaggerJsdoc.Options = {
-//     definition: {
-//         openapi: "3.0.0",
-//         info: {
-//             title: "Docs",
-//             version
-//         },
-//         components: {
-//             securitySchemas: {
-//                 bearerAuth: {
-//                     type: "http",
-//                     scheme: 'bearer',
-//                     bearerFormat: "JWT"
-//                 }
-//             }
-//         },
-//         security: [
-//             {
-//                 bearerAuth: [],
-//             }
-//         ]
-//     },
-//     apis: ['*']
-// }
+import swaggerJsdoc from 'swagger-jsdoc';
 
-// const swaggerSpec = swaggerJsdoc(options);
+import authRouter from '../routes/auth.router'
 
-// function swaggerDocs(app: Express, port: string) {
-//     // Swagger page
-//     app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+const options: swaggerJsdoc.Options = {
+    definition: {
+        openapi: "3.0.0",
+        info: {
+            title: "Docs",
+            version: "1.8.6"
+        },
+        servers: [
+            {
+                url: "http://localhost:8080"
+            }
+        ],
+        components: {
+            securitySchemas: {
+                bearerAuth: {
+                    type: "http",
+                    scheme: 'bearer',
+                    bearerFormat: "JWT"
+                }
+            }
+        },
+        security: [
+            {
+                bearerAuth: [],
+            }
+        ]
+    },
+    apis: ['../routes/user.router.ts'],
+};
 
-//     // Docs in JSON format
-//     app.get("/docs.json", (req, res) => {
-//         console.log('swagger')
-//         res.setHeader("Content-Type", "application/json");
-//         res.send(swaggerSpec);
-//     });
-// }
 
-// export default swaggerDocs
+const swaggerSpec = swaggerJsdoc(options);
+
+export default swaggerSpec;

@@ -10,10 +10,10 @@ export class UsersController {
 
     constructor() {
         this.db = mysql.createPool({
-            host: process.env.HOST,
+            host: process.env.DB_HOST,
             user: process.env.DB_USER,
             password: process.env.DB_PASSWORD,
-            database: process.env.DB
+            database: process.env.DB_NAME
         }).promise();
 
         this.tokenCache = tokenCache;
@@ -57,6 +57,6 @@ export class UsersController {
 
         this.tokenCache.set(id, refreshToken);
 
-        return accessToken;
+        return { accessToken, refreshToken };
     }
 }
