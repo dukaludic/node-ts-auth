@@ -5,7 +5,7 @@ import mysql from "mysql2";
 import { validation } from './middlewares';
 import UserRouter from './routes/user.router';
 import AuthRouter from './routes/auth.router';
-import swaggerDocs from './utils/swagger';
+// import swaggerDocs from './utils/swagger';
 
 dotenv.config();
 
@@ -18,7 +18,7 @@ app.use([UserRouter, AuthRouter]);
 
 const port = process.env.PORT;
 
-swaggerDocs(app, port!)
+// swaggerDocs(app, port!)
 
 app.listen(port, () => {
     console.log(`Listening on ${port}`)
