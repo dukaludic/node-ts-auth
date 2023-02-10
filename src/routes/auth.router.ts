@@ -7,8 +7,12 @@ dotenv.config();
 const router = Router();
 
 router.post('/login', async (req: Request, res: Response) => {
-    const accessToken = await AuthController.login(req.body);
-    res.send(accessToken);
+    const { accessToken, refreshToken } = await AuthController.login(req.body);
+
+    res.cookie('refreshToken', refreshToken, {
+        httpOnly: true
+    });
+    res.send({ accessToken });
 });
 
 router.get('/logout', async (req: Request, res: Response) => {
@@ -20,11 +24,11 @@ router.get('/logout', async (req: Request, res: Response) => {
 });
 
 router.get('/refresh', async (req: Request, res: Response) => {
-    const accessToken = req.headers.authorization?.split(' ')[1];
+    const refreshToken = req.headers.authorization?.split(' ')[1];
 
-    if (!accessToken) return res.sendStatus(401);
+    if (!refreshToken) return res.sendStatus(401);
 
-    const response = await AuthController.refreshToken(accessToken);
+    const response = await AuthController.refreshToken(refreshToken);
 
     res.send(response)
 })

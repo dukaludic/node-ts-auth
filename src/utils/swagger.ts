@@ -1,9 +1,4 @@
-// TS ignore shouln't be used normally, but Swagger types were creating issues
-// with Typescript build in my case and would require some time to fix
-
 import swaggerJsdoc from 'swagger-jsdoc';
-
-import authRouter from '../routes/auth.router'
 
 const options: swaggerJsdoc.Options = {
     definition: {
@@ -32,7 +27,7 @@ const options: swaggerJsdoc.Options = {
             }
         ]
     },
-    apis: ['../routes/user.router.ts'],
+    apis: ['src/routes/user.router.ts'],
 };
 
 

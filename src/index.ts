@@ -2,9 +2,6 @@ import express from 'express';
 import dotenv from "dotenv";
 import UserRouter from './routes/user.router';
 import AuthRouter from './routes/auth.router';
-// TS ignore shouln't be used normally, but Swagger types were creating issues
-// with Typescript build in my case and would require some time to fix
-
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './utils/swagger';
 
@@ -15,7 +12,7 @@ dotenv.config();
 
 const app = express();
 
-app.use("/api-docs/", swaggerUi.serve, swaggerUi.setup(swaggerDocument!));
+app.use("/api-docs/", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(express.json());
 

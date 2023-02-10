@@ -1,13 +1,14 @@
-import { User } from "../models";
+import { Tokens, User } from "../models";
 import mysql from 'mysql2';
 import jwt from 'jsonwebtoken';
 import tokenCache, { TokenCache } from "../helpers/tokenCache";
 import { generateAccessToken, generateRefreshToken, verifyPassword } from "../helpers";
-
+import UsersService from "../services/users.service";
 
 class AuthController {
     private db: any;
     private tokenCache: TokenCache;
+    private usersService: typeof UsersService;
 
     constructor() {
         this.db = mysql.createPool({
@@ -18,32 +19,25 @@ class AuthController {
         }).promise();
 
         this.tokenCache = tokenCache;
+        this.usersService = UsersService;
     }
 
-    async login(user: User): Promise<{ accessToken: string, refreshToken: string }> {
+    async login(user: User): Promise<Tokens> {
         const { email, password } = user;
 
         console.log(email);
 
-        const getUserRes = await this.db.query(`
-            SELECT id, password
-            FROM users
-            WHERE email = ?
-        `, [email]);
+        const getUserRes = await this.usersService.getUserByEmail(email);
 
-        console.log(getUserRes[0]);
+        console.log(getUserRes);
 
-        const { id, password: dbPassword } = getUserRes[0][0];
+        const { id, password: dbPassword } = getUserRes;
 
-        //check pw
         verifyPassword(password, dbPassword);
 
-
         const accessToken = generateAccessToken({ id, email });
-
         const refreshToken = generateRefreshToken({ id, email });
 
-        // //cache refresh token
         this.tokenCache.set(id, refreshToken);
 
         return { accessToken, refreshToken };
@@ -57,41 +51,26 @@ class AuthController {
         return 200;
     }
 
-    async refreshToken(refreshToken: string): Promise<{ accessToken: string } | number> {
+    async refreshToken(refreshToken: string): Promise<Tokens | number> {
         const { id, email } = jwt.decode(refreshToken) as any;
 
-        if (!refreshToken) return 403;
+        if (!refreshToken) return 401;
 
-        //verify refresh token
-        jwt.verify(refreshToken!, process.env.REFRESH_TOKEN_SECRET!, (err, decoded) => {
-            console.log('PRE REFRESH TOKEN GEN')
-            //refresh access token
+        jwt.verify(refreshToken!, process.env.REFRESH_TOKEN_SECRET!, (err) => {
             if (err) return 403
-            try {
+        });
 
-                token = generateAccessToken({ id, email })
-            } catch (error) {
-                console.log(error);
-            }
+        const expectedAccessToken = this.tokenCache.tryGet(id);
 
+        if (expectedAccessToken !== refreshToken) {
+            return 403;
+        }
 
-            console.log(token, '===bp2');
-        })
+        const newAccessToken = generateAccessToken({ id, email })
+        const newRefreshToken = generateRefreshToken({ id, email })
 
-        //try get from cache
-        const newRefreshToken = tokenCache.tryGet(id);
-
-        console.log(refreshToken, '===refresh token')
-
-
-        let token: string;
-
-
-
-
-
-        return { accessToken: token! };
+        return { accessToken: newAccessToken, refreshToken: newRefreshToken };
     }
 }
 
-export default new AuthController()
+export default new AuthController();

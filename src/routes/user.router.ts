@@ -1,7 +1,6 @@
-import express, { Request, Response, Router } from 'express';
-import { UsersController } from '../controllers/users.controller';
+import { Request, Response, Router } from 'express';
+import UsersController from '../controllers/users.controller';
 import { validation } from '../middlewares';
-import jwt from 'jsonwebtoken';
 
 import dotenv from 'dotenv';
 
@@ -33,16 +32,13 @@ const router = Router();
  *         title: The New Turing Omnibus
  *         author: Alexander K. Dewdney
  */
-
 router.get('/users/:id', validation, async (req: Request, res: Response) => {
-    const repo = new UsersController();
-    const response = await repo.getUserById(req.params.id);
+    const response = await UsersController.getUserById(Number(req.params.id));
     res.send(response);
 });
 
 router.post('/register', async (req: Request, res: Response) => {
-    const repo = new UsersController();
-    const accessToken = await repo.insertUser(req.body);
+    const accessToken = await UsersController.insertUser(req.body);
 
     res.send({ accessToken })
 });

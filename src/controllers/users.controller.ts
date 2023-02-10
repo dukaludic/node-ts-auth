@@ -1,12 +1,14 @@
-import { User } from "../models";
+import { Tokens, User } from "../models";
 import mysql, { Pool } from 'mysql2';
 import jwt from 'jsonwebtoken';
 import { generateAccessToken, generateRefreshToken, hashPassword } from "../helpers";
 import tokenCache, { TokenCache } from "../helpers/tokenCache";
+import UsersService from "../services/users.service";
 
-export class UsersController {
+class UsersController {
     private db: any;
     private tokenCache: TokenCache;
+    private usersService: typeof UsersService;
 
     constructor() {
         this.db = mysql.createPool({
@@ -17,40 +19,20 @@ export class UsersController {
         }).promise();
 
         this.tokenCache = tokenCache;
+        this.usersService = UsersService;
     }
 
-    async getUserById(id: string): Promise<any> {
+    async getUserById(id: number): Promise<User> {
 
         console.log('GetUserById');
-
-        const [rows] = await this.db.query(`
-            SELECT first_name, last_name, email, password
-            FROM users
-            WHERE id = ?
-        `, [id]);
-
-        return rows;
+        const user = await this.usersService.getUserById(id);
+        return user;
     };
 
-    async insertUser(user: User): Promise<any> {
-        const { firstName, lastName, email, password } = user;
+    async insertUser(user: User): Promise<Tokens> {
+        const { email } = user;
 
-        const hashedPassword = await hashPassword(password);
-
-        const insertUserRes = await this.db.query(`
-            INSERT INTO users (
-                first_name,
-                last_name,
-                email,
-                password
-            ) VALUES (?, ?, ?, ?)
-        `, [firstName, lastName, email, hashedPassword]);
-
-        const lastInsertedRes = await this.db.query(`
-            SELECT MAX(id) as 'id' FROM users;
-        `);
-
-        const { id } = lastInsertedRes[0][0];
+        const { id } = await this.usersService.insertUser(user);
 
         const accessToken = generateAccessToken({ id, email });
         const refreshToken = generateRefreshToken({ id, email });
@@ -60,3 +42,5 @@ export class UsersController {
         return { accessToken, refreshToken };
     }
 }
+
+export default new UsersController();

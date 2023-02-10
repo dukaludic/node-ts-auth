@@ -5,3 +5,8 @@ export interface RequestExt extends Request {
         iat: number
     }
 }
+
+export interface Tokens {
+    accessToken: string;
+    refreshToken: string;
+}

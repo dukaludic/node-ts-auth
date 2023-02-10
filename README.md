@@ -1,7 +1,7 @@
 # Requirements
 
 Node v16.14.0
-Docker
+Docker-compose
 
 # Running locally
 
