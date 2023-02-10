@@ -33,14 +33,19 @@ const router = Router();
  *         author: Alexander K. Dewdney
  */
 router.get('/users/:id', validation, async (req: Request, res: Response) => {
-    const response = await UsersController.getUserById(Number(req.params.id));
-    res.send(response);
+    const user = await UsersController.getUserById(Number(req.params.id));
+    res.send(user);
 });
 
 router.post('/register', async (req: Request, res: Response) => {
-    const accessToken = await UsersController.insertUser(req.body);
+    const { accessToken, refreshToken } = await UsersController.insertUser(req.body);
 
-    res.send({ accessToken })
+    res.cookie('refreshToken', refreshToken, {
+        maxAge: 1000 * 60 * 59,
+        httpOnly: true
+    });
+
+    res.send({ accessToken });
 });
 
 export default router;

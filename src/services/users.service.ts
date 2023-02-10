@@ -1,6 +1,8 @@
 import mysql, { Pool } from 'mysql2';
 import { hashPassword } from '../helpers';
 import { User } from '../models';
+import dotenv from 'dotenv';
+dotenv.config();
 
 class UsersService {
     private db: any;
@@ -10,7 +12,8 @@ class UsersService {
             host: process.env.DB_HOST,
             user: process.env.DB_USER,
             password: process.env.DB_PASSWORD,
-            database: process.env.DB_NAME
+            database: process.env.DB_NAME,
+            port: 9009
         }).promise();
     }
 
@@ -35,12 +38,17 @@ class UsersService {
         return getUserRes[0][0];
     }
 
-    async insertUser(user: User): Promise<{ id: number }> {
+
+
+    async insertUser(user: User): Promise<number> {
         const { firstName, lastName, email, password } = user;
 
         const hashedPassword = await hashPassword(password);
 
-        const insertUserRes = await this.db.query(`
+        let lastInsertedId: number;
+
+        try {
+            const insertUserRes = await this.db.query(`
             INSERT INTO users (
                 first_name,
                 last_name,
@@ -49,11 +57,16 @@ class UsersService {
             ) VALUES (?, ?, ?, ?)
         `, [firstName, lastName, email, hashedPassword]);
 
-        const lastInsertedRes = await this.db.query(`
+            const lastInsertedRes = await this.db.query(`
             SELECT MAX(id) as 'id' FROM users;
         `);
+            lastInsertedId = lastInsertedRes[0][0].id
 
-        return { id: lastInsertedRes[0][0].id }
+        } catch (error) {
+            console.error(error)
+        }
+
+        return lastInsertedId!
     }
 }
 
