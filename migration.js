@@ -12,4 +12,4 @@ var connection = mysql2.createPool({
     port: process.env.DB_PORT
 });
 
-migration.init(connection, __dirname + '/migrations');
+migration.init(connection, __dirname + '/src/migrations');
