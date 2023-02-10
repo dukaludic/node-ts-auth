@@ -28,7 +28,6 @@ class UsersService {
     }
 
     async getUserByEmail(email: string): Promise<User> {
-
         const getUserRes = await this.db.query(`
             SELECT id, password
             FROM users
@@ -40,7 +39,7 @@ class UsersService {
 
 
 
-    async insertUser(user: User): Promise<number> {
+    async insertUser(user: User): Promise<{ id: number } | number> {
         const { firstName, lastName, email, password } = user;
 
         const hashedPassword = await hashPassword(password);
@@ -63,10 +62,10 @@ class UsersService {
             lastInsertedId = lastInsertedRes[0][0].id
 
         } catch (error) {
-            console.error(error)
+            return 409;
         }
 
-        return lastInsertedId!
+        return { id: lastInsertedId! }
     }
 }
 

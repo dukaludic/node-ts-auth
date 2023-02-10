@@ -1,27 +1,90 @@
 import { Request, Response, Router } from 'express';
 import AuthController from '../controllers/auth.controller';
-import dotenv from 'dotenv';
 import { Tokens } from '../models';
-
-dotenv.config();
 
 const router = Router();
 
+/**
+ * @openapi
+ * '/login':
+ *  post:
+ *     tags:
+ *     - Auth
+ *     summary: Log in a user
+ *     requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *           schema:
+ *            properties:
+ *              email:
+ *                type: string
+ *              password:
+ *                type: string
+ *     responses:
+ *      200:
+ *        description: Success
+ *        content:
+ *          application/json:
+ *            schema:
+ *             properties:
+ *              accessToken:
+ *                type: string
+ *      404:
+ *        description: Not Found
+ */
 router.post('/login', async (req: Request, res: Response) => {
-    const { accessToken, refreshToken } = await AuthController.login(req.body);
+    const response = await AuthController.login(req.body);
 
-    res.cookie('refreshToken', refreshToken, {
-        maxAge: 1000 * 60 * 59,
-        httpOnly: true
-    });
-    res.send({ accessToken });
+    if (!response.hasOwnProperty('accessToken')) {
+        res.sendStatus(response as number);
+    } else {
+        const { accessToken, refreshToken } = response as Tokens
+
+        res.cookie('refreshToken', refreshToken, {
+            maxAge: 1000 * 60 * 59,
+            httpOnly: true
+        });
+        res.send({ accessToken });
+    }
 });
 
+
+/**
+ * @openapi
+ * '/logout':
+ *  get:
+ *     tags:
+ *     - Auth
+ *     summary: Log out a user
+ *     responses:
+ *      200:
+ *        description: Success
+ */
 router.get('/logout', async (req: Request, res: Response) => {
     res.clearCookie("refreshToken");
     res.sendStatus(200);
 });
 
+/**
+ * @openapi
+ * '/refresh':
+ *  post:
+ *     tags:
+ *     - Auth
+ *     summary: Refresh tokens
+ *     responses:
+ *      200:
+ *        description: Success
+ *        content:
+ *          application/json:
+ *            schema:
+ *             properties:
+ *              accessToken:
+ *                type: string
+ *      401:
+ *        description: Unauthorized
+ */
 router.get('/refresh', async (req: Request, res: Response) => {
     const token = req.cookies.refreshToken;
 

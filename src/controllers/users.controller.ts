@@ -1,4 +1,4 @@
-import { Tokens, User } from "../models";
+import { InsertUserRes, User } from "../models";
 import { generateAccessToken, generateRefreshToken } from "../helpers";
 import UsersService from "../services/users.service";
 
@@ -10,21 +10,25 @@ class UsersController {
     }
 
     async getUserById(id: number): Promise<User> {
-
-        console.log('GetUserById');
         const user = await this.usersService.getUserById(id);
         return user;
     };
 
-    async insertUser(user: User): Promise<Tokens> {
+    async insertUser(user: User): Promise<InsertUserRes | number> {
         const { email } = user;
 
-        const id = await this.usersService.insertUser(user);
+        const response = await this.usersService.insertUser(user);
+
+        if (!response.hasOwnProperty('id')) {
+            return response as number;
+        }
+
+        const { id } = response as { id: number };
 
         const accessToken = generateAccessToken({ id, email });
         const refreshToken = generateRefreshToken({ id, email });
 
-        return { accessToken, refreshToken };
+        return { accessToken, refreshToken, userId: id };
     }
 }
 

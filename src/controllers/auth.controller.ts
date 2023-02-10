@@ -1,5 +1,4 @@
 import { Tokens, User } from "../models";
-import mysql from 'mysql2';
 import jwt from 'jsonwebtoken';
 import { generateAccessToken, generateRefreshToken, verifyPassword } from "../helpers";
 import UsersService from "../services/users.service";
@@ -11,18 +10,18 @@ class AuthController {
         this.usersService = UsersService;
     }
 
-    async login(user: User): Promise<Tokens> {
+    async login(user: User): Promise<Tokens | number> {
         const { email, password } = user;
 
-        console.log(email);
+        const dbUser = await this.usersService.getUserByEmail(email);
 
-        const getUserRes = await this.usersService.getUserByEmail(email);
+        if (!dbUser) {
+            return 404;
+        }
 
-        console.log(getUserRes);
+        const { id, password: dbPassword } = dbUser;
 
-        const { id, password: dbPassword } = getUserRes;
-
-        verifyPassword(password, dbPassword);
+        await verifyPassword(password, dbPassword);
 
         const accessToken = generateAccessToken({ id, email });
         const refreshToken = generateRefreshToken({ id, email });
@@ -31,9 +30,9 @@ class AuthController {
     };
 
     async refreshToken(refreshToken: string): Promise<Tokens | number> {
-        const { id, email } = jwt.decode(refreshToken) as any;
-
         if (!refreshToken) return 401;
+
+        const { id, email } = jwt.decode(refreshToken) as any;
 
         jwt.verify(refreshToken!, process.env.REFRESH_TOKEN_SECRET!, (err) => {
             if (err) return 403

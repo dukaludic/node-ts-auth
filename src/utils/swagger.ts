@@ -5,7 +5,7 @@ const options: swaggerJsdoc.Options = {
         openapi: "3.0.0",
         info: {
             title: "Docs",
-            version: "1.8.6"
+            version: "1.0.0"
         },
         servers: [
             {
@@ -18,6 +18,11 @@ const options: swaggerJsdoc.Options = {
                     type: "http",
                     scheme: 'bearer',
                     bearerFormat: "JWT"
+                },
+                cookieAuth: {
+                    type: "apiKey",
+                    in: 'cookie',
+                    name: 'refreshToken'
                 }
             }
         },
@@ -27,7 +32,7 @@ const options: swaggerJsdoc.Options = {
             }
         ]
     },
-    apis: ['src/routes/user.router.ts'],
+    apis: ['src/routes/*.router.ts'],
 };
 
 

@@ -5,7 +5,6 @@ import AuthRouter from './routes/auth.router';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './utils/swagger';
 import cookieParser from 'cookie-parser';
-import YAML from 'js-yaml';
 
 dotenv.config();
 
